@@ -83,47 +83,46 @@ class Politicians
 
   getTweetTitleFromPageTitle: (page) ->
     n = @getFullNameFromPage page
-    return @getTweetName(n)
+    if n
+      return @getTweetName(n)
+    else
+      return page
 
   getFullNameFromPage: (page) ->
-    return @names[page]
+    if page of @names then @names[page] else false
 
   readPages: () ->
-    names = {}
+    @names = {}
+    @pages = []
     for name, data of @politicians
-      names[data.article] = name
-    return names
+      @names[data.article] = name
+      @pages.push data.article
 
   constructor: (config) ->
     @politicians = config.politicians
-    @names = @readPages()
-
-class AliasSet
-
-  maybe: (full_name) ->
-    if full_name of @aliases then @aliases[full_name] else full_name
-
-  constructor: (config) ->
-    @aliases = config.aliases
+    @readPages()
 
 main = ->
   config = getConfig(argv.config)
   twitter = new Twit config unless argv['noop']
-  wikipedia = new WikiChanges(ircNickname: config.nick)
-  alias_me = new AliasSet config
+  console.log("Connecting")
+  wikipedia = new WikiChanges({ircNickname: config.nick, wikipedias: config.wikipedias})
+  politicians = new Politicians config
+  listening = false
   wikipedia.listen (edit) ->
+    if not listening
+      console.log("Now listening for edits... ")
+      listening = true
     # if we have an anonymous edit, then edit.user will be the ip address
     # we iterate through each group of ip ranges looking for a match
-    for article in config.articles
-      if edit.page == article
-        status = alias_me.maybe(edit.page) + ' has been edited ' + edit.url
-        console.log status
-        status = truncateStatus edit, status
-        return if argv.noop
-        twitter.post 'statuses/update', status: status, (err, d, r) ->
-          if err
-            console.log err
-        return
+    if (edit.page in config.articles) or (edit.page in politicians.pages)
+      status = politicians.getTweetTitleFromPageTitle(edit.page) + ' has been edited ' + edit.url
+      console.log status
+      return if argv.noop
+      twitter.post 'statuses/update', status: status, (err, d, r) ->
+        if err
+          console.log err
+      return
 
 if require.main == module
   main()
@@ -135,5 +134,4 @@ exports.isIpInAnyRange = isIpInAnyRange
 exports.ipToInt = ipToInt
 exports.run = main
 exports.getConfig = getConfig
-exports.AliasSet = AliasSet
 exports.Politicians = Politicians
