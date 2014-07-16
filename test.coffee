@@ -1,11 +1,66 @@
 anon = require './anon'
+
 assert = require('chai').assert
 
 compareIps = anon.compareIps
 isIpInRange = anon.isIpInRange
 isIpInAnyRange = anon.isIpInAnyRange
+AliasSet = anon.AliasSet
+getConfig = anon.getConfig
+Politicians = anon.Politicians
+
 
 describe 'anon', ->
+  describe "getConfig", ->
+    it "reads the test file", ->
+      config = getConfig('config.json')
+
+  describe 'Politicians', ->
+    it "reads the config", ->
+      config = getConfig('config.json')
+
+    it "resolves politician info", ->
+      config = getConfig('config.json')
+      aliases = new Politicians config
+      pat = aliases.getByName "Pat Garofalo"
+      assert.equal pat.district, "58B"
+      abdi = aliases.getByName "Abdi Warsame"
+      assert.equal abdi.district, "6" 
+
+    it "creates the tweet title format", ->
+      config = getConfig('config.json')
+      aliases = new Politicians config
+
+      test = 'Minnesota Rep. Pat Garofalo (58B-R, @sandbox432412)'
+      assert.equal test, aliases.getTweetName "Pat Garofalo"
+
+      test_b = 'Minneapolis Council Member Abdi Warsame (D)'
+      assert.equal test_b, aliases.getTweetName "Abdi Warsame"
+
+    it "resolves the full name from the article title", ->
+      config = getConfig('config.json')
+      aliases = new Politicians config
+
+      name = "Mike Nelson"
+      from_article = aliases.getFullNameFromPage("Michael Nelson (Minnesota politician)")
+      assert.equal name, from_article
+
+  describe "AliasSet", ->
+    it "reads the aliases", ->
+      config = getConfig('config.json')
+      aliases = new AliasSet config
+
+    it "resolves the alias", ->
+      config = getConfig('config.json')
+      aliases = new AliasSet config
+      test = aliases.maybe "Al Franken (Politician)"
+      assert.equal "Al Franken", test
+
+    it "correctly returns the original", ->
+      config = getConfig('config.json')
+      aliases = new AliasSet config
+      guinea_pig = "Dr. Frank-n-furter (Transylvanian)"
+      assert.equal guinea_pig, aliases.maybe guinea_pig
 
   describe "compareIps", ->
     it 'equal', ->

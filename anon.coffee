@@ -47,17 +47,74 @@ getConfig = (path) ->
     path = './' + path
   return require(path)
 
+# truncateTweet = (name, tweet, edit) ->
+#   # Check that the composed tweet is not longer than the limit, which
+#   # is shorter than tweet length because URLs will probably mess things
+#   # up even if they get shortened
+#   if tweet.length > 130
+#     # Add a little extra room for error
+#     diff = Math.abs(130 - tweet.length) + 3
+#     truncated = edit.page.slice(0, edit.page.length - diff) + '…'
+#     tweet = "#{name} has edited #{truncated} #{edit.url}"
+#     console.log("TRUNCATED:      " + tweet)
+#   tweet
+
+class Politicians
+
+  getByName: (full_name) ->
+    if full_name of @politicians then @politicians[full_name] else false
+
+  maybeArticle: (full_name) ->
+    if full_name of @aliases then @aliases[full_name] else full_name
+
+  getTweetName: (full_name) ->
+    if full_name of @politicians
+      p = @politicians[full_name]
+      if (p.district and p.party and p.twitter) and p.title == "Rep."
+        district = "#{p.district}-#{p.party}, @#{p.twitter}"
+      else if (p.party and p.twitter) and p.title == "Council Member"
+        district = "#{p.party}, @#{p.twitter}"
+      else if p.twitter
+        district = "@#{p.twitter}"
+      else if p.party
+        district = "#{p.party}"
+      return "#{p.jurisdiction} #{p.title} #{full_name} (#{district})"
+    return full_name
+
+  getFullNameFromPage: (page) ->
+    return @names[page]
+
+  readPages: () ->
+    names = {}
+    for name, data of @politicians
+      names[data.article] = name
+    return names
+
+  constructor: (config) ->
+    @politicians = config.politicians
+    @names = @readPages()
+
+class AliasSet
+
+  maybe: (full_name) ->
+    if full_name of @aliases then @aliases[full_name] else full_name
+
+  constructor: (config) ->
+    @aliases = config.aliases
+
 main = ->
   config = getConfig(argv.config)
   twitter = new Twit config unless argv['noop']
   wikipedia = new WikiChanges(ircNickname: config.nick)
+  alias_me = new AliasSet config
   wikipedia.listen (edit) ->
     # if we have an anonymous edit, then edit.user will be the ip address
     # we iterate through each group of ip ranges looking for a match
     for article in config.articles
       if edit.page == article
-        status = edit.page + ' has been edited ' + edit.url
+        status = alias_me.maybe(edit.page) + ' has been edited ' + edit.url
         console.log status
+        status = truncateStatus edit, status
         return if argv.noop
         twitter.post 'statuses/update', status: status, (err, d, r) ->
           if err
@@ -73,3 +130,6 @@ exports.isIpInRange = isIpInRange
 exports.isIpInAnyRange = isIpInAnyRange
 exports.ipToInt = ipToInt
 exports.run = main
+exports.getConfig = getConfig
+exports.AliasSet = AliasSet
+exports.Politicians = Politicians
