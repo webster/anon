@@ -25,7 +25,7 @@ describe 'anon', ->
       pat = aliases.getByName "Pat Garofalo"
       assert.equal pat.district, "58B"
       abdi = aliases.getByName "Abdi Warsame"
-      assert.equal abdi.district, "6" 
+      assert.equal abdi.district, "6"
 
     it "creates the tweet title format", ->
       config = getConfig('config.json')
@@ -44,6 +44,14 @@ describe 'anon', ->
       name = "Mike Nelson"
       from_article = aliases.getFullNameFromPage("Michael Nelson (Minnesota politician)")
       assert.equal name, from_article
+
+    it "resolves the tweet title from the article title", ->
+      config = getConfig('config.json')
+      aliases = new Politicians config
+
+      from_article = aliases.getTweetTitleFromPageTitle("Michael Nelson (Minnesota politician)")
+      test = "Minnesota Rep. Mike Nelson (D)"
+      assert.equal test, from_article
 
   describe "AliasSet", ->
     it "reads the aliases", ->

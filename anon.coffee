@@ -81,6 +81,10 @@ class Politicians
       return "#{p.jurisdiction} #{p.title} #{full_name} (#{district})"
     return full_name
 
+  getTweetTitleFromPageTitle: (page) ->
+    n = @getFullNameFromPage page
+    return @getTweetName(n)
+
   getFullNameFromPage: (page) ->
     return @names[page]
 
