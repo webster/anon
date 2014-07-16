@@ -7,6 +7,33 @@
     "aliases": {
         "Al Franken (Politician)": "Al Franken"
     },
+	"politicians": {
+		"Mike Nelson": {
+			"article": "Michael Nelson (Minnesota politician)",
+			"jurisdiction": "Minnesota",
+			"body": "House of Representatives",
+			"title": "Rep.",
+			"district": "40A",
+			"party": "D"
+		},
+		"Abdi Warsame": {
+			"article": "Abdi Warsame",
+			"jurisdiction": "Minneapolis",
+			"body": "City Council",
+			"title": "Council Member",
+			"district": "6",
+			"party": "D"
+		},
+		"Pat Garofalo": {
+			"article": "Pat Garofalo",
+			"jurisdiction": "Minnesota",
+			"body": "House of Representatives",
+			"title": "Rep.",
+			"district": "58B",
+			"party": "R",
+			"twitter": "sandbox432412"
+		}
+	},
     "ranges": {
         "US House of Representatives": [
             "143.231.0.0/16",
